@@ -1,0 +1,3 @@
+[submodule "tpt/googletest"]
+	path = tpt/googletest
+	url = git@github.com:google/googletest.git

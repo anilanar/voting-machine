@@ -3,31 +3,34 @@
 #include <stack>
 
 using namespace foobar;
+using namespace foobar::internal;
 
-VotingMatrix::VotingMatrix(size_type voterCount, size_type choiceCount)
-    : matrix(voterCount), choices(choiceCount, {false, 0}) {}
+voting_matrix::voting_matrix(size_type voter_count, size_type choice_count)
+    : matrix(voter_count, voter_count), choices(choice_count, voter_count) {}
 
-void VotingMatrix::AddVote(size_type voter, size_type choice)
+void voting_matrix::add_vote(size_type voter, size_type choice)
 {
-    auto &_choice = this->choices[choice];
-    _choice.hasVoter = true;
-    _choice.voter = voter;
+    auto &_choice = this->choices[choice][voter] = true;
 }
 
-void VotingMatrix::AddDelegate(size_type voter, size_type delegate)
+void voting_matrix::add_delegate(size_type voter, size_type delegate)
 {
     this->matrix[delegate][voter] = true;
 }
 
-std::vector<size_type> VotingMatrix::GetVotes()
+std::vector<size_type> voting_matrix::get_votes() const
 {
-    auto result = std::vector<size_type>(this->choices.size(), 0);
+    std::vector<size_type> result(this->choices.i_size(), 0);
     auto iter = result.begin();
-    for (auto choice : this->choices)
+    for (auto i = 0; i < this->choices.i_size(); i++)
     {
-        *iter = choice.hasVoter
-                    ? this->CountSupporters(choice.voter)
-                    : 0;
+        for (auto j = 0; j < this->choices.j_size(); j++)
+        {
+            if (this->choices[i][j] == true)
+            {
+                *iter += this->count_supporters(j);
+            }
+        }
         iter++;
     }
     return result;
@@ -36,11 +39,11 @@ std::vector<size_type> VotingMatrix::GetVotes()
 /**
  * Typical breadth-first traversal, counting the size of support-tree
  */
-size_type VotingMatrix::CountSupporters(size_type supportee)
+size_type voting_matrix::count_supporters(size_type supportee) const
 {
     auto count = 0;
-    auto stack = std::vector<size_type>();
-    stack.reserve(this->matrix.size());
+    std::vector<size_type> stack;
+    stack.reserve(this->matrix.i_size());
     stack.push_back(supportee);
 
     while (stack.size() > 0)
@@ -50,10 +53,11 @@ size_type VotingMatrix::CountSupporters(size_type supportee)
         count++;
 
         auto supporters = this->matrix[supportee];
-        for (auto i = 0; i < this->matrix.size(); i++)
+        for (auto i = 0; i < this->matrix.i_size(); i++)
         {
             auto supporter = supporters[i];
-            if (supporter == true) {
+            if (supporter == true)
+            {
                 stack.push_back(i);
             }
         }
@@ -61,19 +65,24 @@ size_type VotingMatrix::CountSupporters(size_type supportee)
     return count;
 }
 
-Matrix::Matrix(size_type size) : arr(size), _size(size) {}
+raw_matrix::raw_matrix(size_type i, size_type j) : arr(i * j), _i_size(i), _j_size(j) {}
 
-Matrix::Vector::iterator Matrix::operator[](size_type i)
+raw_matrix::bit_vector::iterator raw_matrix::operator[](size_type i) noexcept
 {
-    return this->arr.begin() + (i * this->size);
+    return this->arr.begin() + (i * this->j_size());
 }
 
-Matrix::Vector::const_iterator Matrix::operator[](size_type i) const
+raw_matrix::bit_vector::const_iterator raw_matrix::operator[](size_type i) const noexcept
 {
-    return this->arr.begin() + i;
+    return this->arr.begin() + (i * this->j_size());
 }
 
-size_type Matrix::size() const noexcept
+size_type raw_matrix::i_size() const noexcept
 {
-    return this->_size;
+    return this->_i_size;
+}
+
+size_type raw_matrix::j_size() const noexcept
+{
+    return this->_j_size;
 }

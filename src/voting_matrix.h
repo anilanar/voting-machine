@@ -1,40 +1,43 @@
+#ifndef __FOOBAR_VOTING_MATRIX_H__
+#define __FOOBAR_VOTING_MATRIX_H__
+
 #include <vector>
+#include "types.h"
 
 namespace foobar
 {
-
-typedef unsigned int size_type;
-
-class VotingMatrix
+namespace internal
+{
+class raw_matrix
 {
   public:
-    VotingMatrix(size_type voterCount, size_type choiceCount);
-    void AddVote(size_type voter, size_type choice);
-    void AddDelegate(size_type voter, size_type choice);
-    std::vector<size_type> GetVotes();
+    typedef std::vector<bool> bit_vector;
+    raw_matrix(size_type i, size_type j);
+    bit_vector::iterator operator[](size_type i) noexcept;
+    bit_vector::const_iterator operator[](size_type i) const noexcept;
+    size_type i_size() const noexcept;
+    size_type j_size() const noexcept;
 
   private:
-    size_type CountSupporters(size_type voter);
-
-    Matrix matrix;
-    std::vector<Choice> choices;
+    bit_vector arr;
+    size_type _i_size;
+    size_type _j_size;
 };
-class Matrix
+class voting_matrix
 {
   public:
-    typedef std::vector<bool> Vector;
-    Matrix(size_type size);
-    Vector::iterator operator[](size_type i);
-    Vector::const_iterator operator[](size_type i) const;
-    size_type size() const noexcept;
+    voting_matrix(size_type voter_count, size_type choice_count);
+    void add_vote(size_type voter, size_type choice);
+    void add_delegate(size_type voter, size_type choice);
+    std::vector<size_type> get_votes() const;
 
   private:
-    Vector arr;
-    size_type _size;
+    size_type count_supporters(size_type voter) const;
+
+    raw_matrix matrix;
+    raw_matrix choices;
 };
-struct Choice
-{
-    bool hasVoter;
-    size_type voter;
-};
+} // namespace internal
 } // namespace foobar
+
+#endif
