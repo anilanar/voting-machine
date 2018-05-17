@@ -2,7 +2,7 @@ GTEST_DIR := $(realpath ./tpt/googletest/googletest)
 GMOCK_DIR := $(realpath ./tpt/googletest/googlemock)
 
 CXX=g++
-CPPFLAGS=-g -std=c++17 -I./src -isystem$(GTEST_DIR)/include \
+CPPFLAGS=-g -std=c++17 -I$./include -isystem$(GTEST_DIR)/include \
 	-isystem$(GMOCK_DIR)/include
 LDFLAGS=-g
 LDLIBS=
@@ -15,7 +15,7 @@ TEST_SRCS=$(wildcard ./test/*.cpp)
 TEST_OBJS=$(patsubst %.cpp,%.o,$(TEST_SRCS))
 TEST_LDFLAGS=-pthread
 
-.PHONY: test gtest
+.PHONY: bin test gtest
 
 build/bin: $(OBJS) $(BIN_OBJS)
 	$(CXX) $(LDFLAGS) $^ -o $@
@@ -32,6 +32,9 @@ $(GMOCK_DIR)/libgmock.a:
 
 gtest:
 	cd $(GMOCK_DIR) && cmake . && make && cd $(GTEST_DIR) && cmake . && make
+
+run: build/bin
+	./build/bin
 
 test: build/test
 	./build/test

@@ -19,7 +19,7 @@ void voting_machine::add_delegation(const std::string &voter, const std::string 
     this->instructions.push_back({DELEGATION, voter_idx, delegate_idx});
 }
 
-std::vector<std::pair<std::string, size_type>> voting_machine::get_votes() const
+std::vector<vote_count> voting_machine::get_votes() const
 {
     internal::voting_matrix matrix(this->voters.size(), this->choices.size());
     for (const auto &i : this->instructions)
@@ -31,7 +31,7 @@ std::vector<std::pair<std::string, size_type>> voting_machine::get_votes() const
     }
 
     auto votes = matrix.get_votes();
-    std::vector<std::pair<std::string, size_type>> result(votes.size() + 1);
+    std::vector<vote_count> result(votes.size() + 1);
     auto result_iter = result.begin();
     auto total_votes = 0;
     for (auto choice_idx = 0; choice_idx < votes.size(); choice_idx++)
